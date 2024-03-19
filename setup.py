@@ -35,5 +35,7 @@ setup(name='cellml.pmr2',
       # -*- Entry points: -*-
       [rdf.plugins.parser]
       cmeta = cellml.pmr2.parser:RDFCmetaParser
+      [console_scripts]
+      cellml.pmr2 = cellml.pmr2.cli:main
       """,
       )
