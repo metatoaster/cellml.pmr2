@@ -28,7 +28,7 @@ def codegen(input_path, output_dir):
             fd.write(v)
 
 
-# legacy tmpdoc
+# docgen
 
 def tmpdoc(input_path, output_dir):
     with open(input_path) as inc:
@@ -37,15 +37,30 @@ def tmpdoc(input_path, output_dir):
         with open(output_file, 'w') as fd:
             fd.write(output.getvalue())
 
+def htmldoc(input_path, output_dir):
+    with open(input_path) as inc:
+        output_file = join(output_dir, 'index.html')
+        with open(output_file, 'w') as fd:
+            fd.write(inc.read())
+
+docs = [
+    (htmldoc, 'HTML Documentation'),
+]
+
+if tmpdoc2html:
+    docs.append((tmpdoc, 'CellML legacy tmpdoc'))
+
+docs_lookup = {fn.__name__: fn for fn, _ in docs}
+
+def docgen(doctype, input_path, output_dir):
+    docs_lookup[doctype](input_path, output_dir)
 
 # set up commands
 
 cmd_fns = [
-    (codegen, 'CellML codegen')
+    (codegen, 'CellML codegen'),
+    (docgen, 'CellML docgen'),
 ]
-
-if tmpdoc2html:
-    cmd_fns.append((tmpdoc, 'CellML legacy tmpdoc'))
 
 def generate_cmd_parser(cmd_fns):
     commands = {}
@@ -55,7 +70,8 @@ def generate_cmd_parser(cmd_fns):
     for cmd_fn, help_text in cmd_fns:
         commands[cmd_fn.__name__] = cmd_fn
         sub_ap = ap_grp.add_parser(cmd_fn.__name__, help=help_text)
-        for arg in getargspec(cmd_fn).args:
+        argspec = getargspec(cmd_fn)
+        for arg in argspec.args:
             sub_ap.add_argument(
                 '--' + arg.replace('_', '-'),
                 action='store',
